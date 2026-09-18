@@ -330,10 +330,17 @@ extern "C" const AMX_NATIVE_INFO native_list[] =
 	AMX_DEFINE_NATIVE(DCC_SendChannelMessageComponents)
 	AMX_DEFINE_NATIVE(DCC_SendChannelEmbedMessageComponents)
 
+	AMX_DEFINE_NATIVE(DCC_CreateFileUpload)
+	AMX_DEFINE_NATIVE(DCC_AddFileUploadType)
+	AMX_DEFINE_NATIVE(DCC_CreateRadioGroup)
+	AMX_DEFINE_NATIVE(DCC_CreateCheckboxGroup)
+	AMX_DEFINE_NATIVE(DCC_CreateCheckbox)
+
 	AMX_DEFINE_NATIVE(DCC_CreateModal)
 	AMX_DEFINE_NATIVE(DCC_AddModalTextInput)
 	AMX_DEFINE_NATIVE(DCC_AddModalSelect)
 	AMX_DEFINE_NATIVE(DCC_AddModalTextDisplay)
+	AMX_DEFINE_NATIVE(DCC_AddModalComponent)
 	AMX_DEFINE_NATIVE(DCC_ShowModal)
 	AMX_DEFINE_NATIVE(DCC_DeleteModal)
 
