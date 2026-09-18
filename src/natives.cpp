@@ -3422,12 +3422,38 @@ AMX_DECLARE_NATIVE(Native::DCC_AddModalTextInput)
 	int min_length = static_cast<int>(params[7]);
 	int max_length = static_cast<int>(params[8]);
 	auto value = amx_GetCppString(amx, params[9]);
+	auto description = amx_GetCppString(amx, params[10]);
 
-	if (custom_id.length() > 100 || label.length() > 45 || placeholder.length() > 100)
+	if (custom_id.length() > 100 || label.length() > 45 || placeholder.length() > 100 ||
+		description.length() > 100)
 		return 0;
 
 	return modal->AddTextInput(custom_id, label, style, placeholder, required,
-		min_length, max_length, value) ? 1 : 0;
+		min_length, max_length, value, description) ? 1 : 0;
+}
+
+// native DCC_AddModalSelect(DCC_Modal:modal, DCC_Component:select, const label[], const description[] = "", bool:required = true);
+AMX_DECLARE_NATIVE(Native::DCC_AddModalSelect)
+{
+	auto const& modal = ModalManager::Get()->Find(static_cast<ModalId_t>(params[1]));
+	auto const& select = ComponentManager::Get()->Find(static_cast<ComponentId_t>(params[2]));
+	if (!modal || !select) return 0;
+
+	auto label = amx_GetCppString(amx, params[3]);
+	auto description = amx_GetCppString(amx, params[4]);
+	bool required = params[5] != 0;
+
+	return modal->AddSelect(*select, label, description, required) ? 1 : 0;
+}
+
+// native DCC_AddModalTextDisplay(DCC_Modal:modal, const content[]);
+AMX_DECLARE_NATIVE(Native::DCC_AddModalTextDisplay)
+{
+	auto const& modal = ModalManager::Get()->Find(static_cast<ModalId_t>(params[1]));
+	if (!modal) return 0;
+
+	auto content = amx_GetCppString(amx, params[2]);
+	return modal->AddTextDisplay(content) ? 1 : 0;
 }
 
 // native DCC_ShowModal(DCC_Interaction:interaction, DCC_Modal:modal);
