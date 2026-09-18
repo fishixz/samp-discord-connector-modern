@@ -49,7 +49,7 @@ using CommandInteractionOption_t = std::unique_ptr<struct CommandInteractionOpti
 
 using Component_t = std::unique_ptr<class Component>;
 using ComponentId_t = cell;
-const ComponentId_t INVALID_COMPONENT_ID = 0;
+const ComponentId_t INVALID_DCC_COMPONENT_ID = 0;
 
 using Modal_t = std::unique_ptr<class Modal>;
 using ModalId_t = cell;
