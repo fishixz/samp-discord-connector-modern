@@ -100,19 +100,19 @@ ComponentId_t ComponentManager::CreateButton(std::string const& custom_id, std::
 {
 	if (style < static_cast<int>(DiscordButtonStyle::PRIMARY) ||
 		style > static_cast<int>(DiscordButtonStyle::PREMIUM))
-		return INVALID_COMPONENT_ID;
+		return INVALID_DCC_COMPONENT_ID;
 
 	bool is_link = style == static_cast<int>(DiscordButtonStyle::LINK);
 	bool is_premium = style == static_cast<int>(DiscordButtonStyle::PREMIUM);
 
 	if (is_link && (url.empty() || url.length() > 512))
-		return INVALID_COMPONENT_ID;
+		return INVALID_DCC_COMPONENT_ID;
 	if (is_premium && sku_id.empty())
-		return INVALID_COMPONENT_ID;
+		return INVALID_DCC_COMPONENT_ID;
 	if (!is_link && !is_premium && custom_id.empty())
-		return INVALID_COMPONENT_ID;
+		return INVALID_DCC_COMPONENT_ID;
 	if (!is_premium && label.empty() && emoji.empty())
-		return INVALID_COMPONENT_ID;
+		return INVALID_DCC_COMPONENT_ID;
 
 	ComponentId_t id = 1;
 	while (m_Components.find(id) != m_Components.end())
@@ -153,10 +153,10 @@ ComponentId_t ComponentManager::CreateSelect(int type, std::string const& custom
 		type != static_cast<int>(DiscordComponentType::ROLE_SELECT) &&
 		type != static_cast<int>(DiscordComponentType::MENTIONABLE_SELECT) &&
 		type != static_cast<int>(DiscordComponentType::CHANNEL_SELECT))
-		return INVALID_COMPONENT_ID;
+		return INVALID_DCC_COMPONENT_ID;
 
 	if (custom_id.empty() || min_values < 0 || max_values < 1 || min_values > max_values || max_values > 25)
-		return INVALID_COMPONENT_ID;
+		return INVALID_DCC_COMPONENT_ID;
 
 	ComponentId_t id = 1;
 	while (m_Components.find(id) != m_Components.end())
@@ -185,7 +185,7 @@ ComponentId_t ComponentManager::CreateFileUpload(std::string const& custom_id,
 {
 	if (custom_id.empty() || custom_id.length() > 100 ||
 		min_values < 0 || max_values < 1 || min_values > max_values || max_values > 10)
-		return INVALID_COMPONENT_ID;
+		return INVALID_DCC_COMPONENT_ID;
 
 	ComponentId_t id = 1;
 	while (m_Components.find(id) != m_Components.end())
@@ -208,10 +208,10 @@ ComponentId_t ComponentManager::CreateChoiceGroup(int type, std::string const& c
 {
 	if (type != static_cast<int>(DiscordComponentType::RADIO_GROUP) &&
 		type != static_cast<int>(DiscordComponentType::CHECKBOX_GROUP))
-		return INVALID_COMPONENT_ID;
+		return INVALID_DCC_COMPONENT_ID;
 
 	if (custom_id.empty() || custom_id.length() > 100)
-		return INVALID_COMPONENT_ID;
+		return INVALID_DCC_COMPONENT_ID;
 
 	if (type == static_cast<int>(DiscordComponentType::RADIO_GROUP))
 	{
@@ -221,7 +221,7 @@ ComponentId_t ComponentManager::CreateChoiceGroup(int type, std::string const& c
 	else if (min_values < 0 || max_values < 1 || min_values > max_values || max_values > 10 ||
 		(required && min_values == 0))
 	{
-		return INVALID_COMPONENT_ID;
+		return INVALID_DCC_COMPONENT_ID;
 	}
 
 	ComponentId_t id = 1;
@@ -248,7 +248,7 @@ ComponentId_t ComponentManager::CreateChoiceGroup(int type, std::string const& c
 ComponentId_t ComponentManager::CreateCheckbox(std::string const& custom_id, bool is_default)
 {
 	if (custom_id.empty() || custom_id.length() > 100)
-		return INVALID_COMPONENT_ID;
+		return INVALID_DCC_COMPONENT_ID;
 
 	ComponentId_t id = 1;
 	while (m_Components.find(id) != m_Components.end())
