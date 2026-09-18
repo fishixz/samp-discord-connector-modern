@@ -49,7 +49,10 @@ bool Component::AddChild(Component const& child)
 bool Component::AddSelectOption(std::string const& label, std::string const& value,
 	std::string const& description, std::string const& emoji, bool is_default)
 {
-	if (GetType() != DiscordComponentType::STRING_SELECT)
+	auto type = GetType();
+	if (type != DiscordComponentType::STRING_SELECT &&
+		type != DiscordComponentType::RADIO_GROUP &&
+		type != DiscordComponentType::CHECKBOX_GROUP)
 		return false;
 
 	if (m_Data.find("options") == m_Data.end())
@@ -68,7 +71,7 @@ bool Component::AddSelectOption(std::string const& label, std::string const& val
 	if (!description.empty())
 		option["description"] = description;
 
-	if (!emoji.empty())
+	if (!emoji.empty() && type == DiscordComponentType::STRING_SELECT)
 		option["emoji"] = { { "name", emoji } };
 
 	options.push_back(std::move(option));
@@ -159,6 +162,111 @@ ComponentId_t ComponentManager::CreateSelect(int type, std::string const& custom
 	return id;
 }
 
+ComponentId_t ComponentManager::CreateFileUpload(std::string const& custom_id,
+	int min_values, int max_values, bool required)
+{
+	if (custom_id.empty() || custom_id.length() > 100 ||
+		min_values < 0 || max_values < 1 || min_values > max_values || max_values > 10)
+		return INVALID_COMPONENT_ID;
+
+	ComponentId_t id = 1;
+	while (m_Components.find(id) != m_Components.end())
+		++id;
+
+	json data = {
+		{ "type", static_cast<int>(DiscordComponentType::FILE_UPLOAD) },
+		{ "custom_id", custom_id },
+		{ "min_values", min_values },
+		{ "max_values", max_values },
+		{ "required", required }
+	};
+
+	m_Components.emplace(id, Component_t(new Component(id, std::move(data))));
+	return id;
+}
+
+ComponentId_t ComponentManager::CreateChoiceGroup(int type, std::string const& custom_id,
+	int min_values, int max_values, bool required)
+{
+	if (type != static_cast<int>(DiscordComponentType::RADIO_GROUP) &&
+		type != static_cast<int>(DiscordComponentType::CHECKBOX_GROUP))
+		return INVALID_COMPONENT_ID;
+
+	if (custom_id.empty() || custom_id.length() > 100)
+		return INVALID_COMPONENT_ID;
+
+	if (type == static_cast<int>(DiscordComponentType::RADIO_GROUP))
+	{
+		min_values = 1;
+		max_values = 1;
+	}
+	else if (min_values < 0 || max_values < 1 || min_values > max_values || max_values > 10)
+	{
+		return INVALID_COMPONENT_ID;
+	}
+
+	ComponentId_t id = 1;
+	while (m_Components.find(id) != m_Components.end())
+		++id;
+
+	json data = {
+		{ "type", type },
+		{ "custom_id", custom_id },
+		{ "options", json::array() },
+		{ "required", required }
+	};
+
+	if (type == static_cast<int>(DiscordComponentType::CHECKBOX_GROUP))
+	{
+		data["min_values"] = min_values;
+		data["max_values"] = max_values;
+	}
+
+	m_Components.emplace(id, Component_t(new Component(id, std::move(data))));
+	return id;
+}
+
+ComponentId_t ComponentManager::CreateCheckbox(std::string const& custom_id, bool is_default)
+{
+	if (custom_id.empty() || custom_id.length() > 100)
+		return INVALID_COMPONENT_ID;
+
+	ComponentId_t id = 1;
+	while (m_Components.find(id) != m_Components.end())
+		++id;
+
+	json data = {
+		{ "type", static_cast<int>(DiscordComponentType::CHECKBOX) },
+		{ "custom_id", custom_id },
+		{ "default", is_default }
+	};
+
+	m_Components.emplace(id, Component_t(new Component(id, std::move(data))));
+	return id;
+}
+
+bool ComponentManager::AddFileType(ComponentId_t id, std::string const& file_type)
+{
+	auto const& component = Find(id);
+	if (!component || component->GetType() != DiscordComponentType::FILE_UPLOAD ||
+		file_type.empty())
+		return false;
+
+	json data = component->GetData();
+	if (data.find("file_types") == data.end())
+		data["file_types"] = json::array();
+
+	auto& types = data["file_types"];
+	if (!types.is_array() || types.size() >= 10)
+		return false;
+
+	types.push_back(file_type);
+
+	// Replace the object while keeping the same Pawn id.
+	m_Components[id].reset(new Component(id, std::move(data)));
+	return true;
+}
+
 Component_t const& ComponentManager::Find(ComponentId_t id)
 {
 	static Component_t invalid_component;
@@ -247,6 +355,33 @@ bool Modal::AddSelect(Component const& select, std::string const& label,
 		{ "type", static_cast<int>(DiscordComponentType::LABEL) },
 		{ "label", label },
 		{ "component", std::move(select_data) }
+	};
+
+	if (!description.empty())
+		label_component["description"] = description;
+
+	m_Data["components"].push_back(std::move(label_component));
+	return true;
+}
+
+bool Modal::AddInputComponent(Component const& component, std::string const& label,
+	std::string const& description)
+{
+	if (m_Data["components"].size() >= 5 || label.empty() || label.length() > 45 ||
+		description.length() > 100)
+		return false;
+
+	auto type = component.GetType();
+	if (type != DiscordComponentType::FILE_UPLOAD &&
+		type != DiscordComponentType::RADIO_GROUP &&
+		type != DiscordComponentType::CHECKBOX_GROUP &&
+		type != DiscordComponentType::CHECKBOX)
+		return false;
+
+	json label_component = {
+		{ "type", static_cast<int>(DiscordComponentType::LABEL) },
+		{ "label", label },
+		{ "component", component.GetData() }
 	};
 
 	if (!description.empty())
