@@ -14,6 +14,7 @@
 #include "Emoji.hpp"
 #include "Command.hpp"
 #include "CommandInteraction.hpp"
+#include "Component.hpp"
 #include <fmt/printf.h>
 
 #ifdef ERROR
@@ -3011,6 +3012,12 @@ AMX_DECLARE_NATIVE(Native::DCC_GetInteractionContent)
 		return 0;
 	}
 
+	if (interaction->GetOptions().empty())
+	{
+		Logger::Get()->LogNative(samplog_LogLevel::ERROR, "interaction has no command content");
+		return 0;
+	}
+
 	cell ret_val = amx_SetCppString(
 		amx, params[2], interaction->GetOptions().at(0)->m_Value, params[3]) == AMX_ERR_NONE;
 
@@ -3126,9 +3133,316 @@ AMX_DECLARE_NATIVE(Native::DCC_SendInteractionMessage)
 		return 0;
 	}
 
-	interaction->SendInteractionMessage(message);
+	int param_count = static_cast<int>(params[0] / sizeof(cell));
+	bool ephemeral = param_count >= 3 ? params[3] != 0 : false;
+	interaction->SendInteractionMessage(message, ephemeral);
 	Logger::Get()->LogNative(samplog_LogLevel::DEBUG, "return value: '1'");
 	return 1;
+}
+
+// native DCC_GetInteractionType(DCC_Interaction:interaction, &DCC_InteractionType:type);
+AMX_DECLARE_NATIVE(Native::DCC_GetInteractionType)
+{
+	CommandInteractionId_t id = params[1];
+	auto const& interaction = CommandInteractionManager::Get()->FindCommandInteraction(id);
+	if (!interaction) return 0;
+
+	cell* dest = nullptr;
+	if (amx_GetAddr(amx, params[2], &dest) != AMX_ERR_NONE || dest == nullptr) return 0;
+	*dest = static_cast<cell>(interaction->GetType());
+	return 1;
+}
+
+// native DCC_GetInteractionCustomId(DCC_Interaction:interaction, dest[], max_size = sizeof dest);
+AMX_DECLARE_NATIVE(Native::DCC_GetInteractionCustomId)
+{
+	CommandInteractionId_t id = params[1];
+	auto const& interaction = CommandInteractionManager::Get()->FindCommandInteraction(id);
+	if (!interaction) return 0;
+	return amx_SetCppString(amx, params[2], interaction->GetCustomId(), params[3]) == AMX_ERR_NONE;
+}
+
+// native DCC_GetInteractionComponentType(DCC_Interaction:interaction, &DCC_ComponentType:type);
+AMX_DECLARE_NATIVE(Native::DCC_GetInteractionComponentType)
+{
+	CommandInteractionId_t id = params[1];
+	auto const& interaction = CommandInteractionManager::Get()->FindCommandInteraction(id);
+	if (!interaction) return 0;
+
+	cell* dest = nullptr;
+	if (amx_GetAddr(amx, params[2], &dest) != AMX_ERR_NONE || dest == nullptr) return 0;
+	*dest = static_cast<cell>(interaction->GetComponentType());
+	return 1;
+}
+
+// native DCC_GetInteractionValueCount(DCC_Interaction:interaction, &count);
+AMX_DECLARE_NATIVE(Native::DCC_GetInteractionValueCount)
+{
+	CommandInteractionId_t id = params[1];
+	auto const& interaction = CommandInteractionManager::Get()->FindCommandInteraction(id);
+	if (!interaction) return 0;
+
+	cell* dest = nullptr;
+	if (amx_GetAddr(amx, params[2], &dest) != AMX_ERR_NONE || dest == nullptr) return 0;
+	*dest = static_cast<cell>(interaction->GetValues().size());
+	return 1;
+}
+
+// native DCC_GetInteractionValue(DCC_Interaction:interaction, index, dest[], max_size = sizeof dest);
+AMX_DECLARE_NATIVE(Native::DCC_GetInteractionValue)
+{
+	CommandInteractionId_t id = params[1];
+	auto const& interaction = CommandInteractionManager::Get()->FindCommandInteraction(id);
+	if (!interaction) return 0;
+
+	int index = static_cast<int>(params[2]);
+	if (index < 0 || static_cast<size_t>(index) >= interaction->GetValues().size())
+		return 0;
+
+	return amx_SetCppString(amx, params[3], interaction->GetValues().at(index), params[4]) == AMX_ERR_NONE;
+}
+
+// native DCC_GetInteractionModalValue(DCC_Interaction:interaction, const field_id[], dest[], max_size = sizeof dest);
+AMX_DECLARE_NATIVE(Native::DCC_GetInteractionModalValue)
+{
+	CommandInteractionId_t id = params[1];
+	auto const& interaction = CommandInteractionManager::Get()->FindCommandInteraction(id);
+	if (!interaction) return 0;
+
+	auto field_id = amx_GetCppString(amx, params[2]);
+	std::string value;
+	if (!interaction->GetModalValue(field_id, value))
+		return 0;
+
+	return amx_SetCppString(amx, params[3], value, params[4]) == AMX_ERR_NONE;
+}
+
+// native DCC_UpdateInteractionMessage(DCC_Interaction:interaction, const message[]);
+AMX_DECLARE_NATIVE(Native::DCC_UpdateInteractionMessage)
+{
+	CommandInteractionId_t id = params[1];
+	auto const& interaction = CommandInteractionManager::Get()->FindCommandInteraction(id);
+	if (!interaction) return 0;
+
+	auto message = amx_GetCppString(amx, params[2]);
+	if (message.length() > 2000) return 0;
+	interaction->UpdateInteractionMessage(message);
+	return 1;
+}
+
+// native DCC_Component:DCC_CreateActionRow();
+AMX_DECLARE_NATIVE(Native::DCC_CreateActionRow)
+{
+	return ComponentManager::Get()->CreateActionRow();
+}
+
+// native DCC_Component:DCC_CreateButton(...);
+AMX_DECLARE_NATIVE(Native::DCC_CreateButton)
+{
+	auto custom_id = amx_GetCppString(amx, params[1]);
+	auto label = amx_GetCppString(amx, params[2]);
+	int style = static_cast<int>(params[3]);
+	bool disabled = params[4] != 0;
+	auto emoji = amx_GetCppString(amx, params[5]);
+	auto url = amx_GetCppString(amx, params[6]);
+
+	if (custom_id.length() > 100 || label.empty() || label.length() > 80)
+		return INVALID_COMPONENT_ID;
+
+	return ComponentManager::Get()->CreateButton(custom_id, label, style, disabled, emoji, url);
+}
+
+static cell CreateSelectNative(AMX* amx, cell* params, int type)
+{
+	auto custom_id = amx_GetCppString(amx, params[1]);
+	auto placeholder = amx_GetCppString(amx, params[2]);
+	if (custom_id.empty() || custom_id.length() > 100 || placeholder.length() > 150)
+		return INVALID_COMPONENT_ID;
+
+	return ComponentManager::Get()->CreateSelect(
+		type, custom_id, placeholder,
+		static_cast<int>(params[3]), static_cast<int>(params[4]), params[5] != 0);
+}
+
+AMX_DECLARE_NATIVE(Native::DCC_CreateStringSelect)
+{
+	return CreateSelectNative(amx, params, static_cast<int>(DiscordComponentType::STRING_SELECT));
+}
+
+AMX_DECLARE_NATIVE(Native::DCC_CreateUserSelect)
+{
+	return CreateSelectNative(amx, params, static_cast<int>(DiscordComponentType::USER_SELECT));
+}
+
+AMX_DECLARE_NATIVE(Native::DCC_CreateRoleSelect)
+{
+	return CreateSelectNative(amx, params, static_cast<int>(DiscordComponentType::ROLE_SELECT));
+}
+
+AMX_DECLARE_NATIVE(Native::DCC_CreateMentionableSelect)
+{
+	return CreateSelectNative(amx, params, static_cast<int>(DiscordComponentType::MENTIONABLE_SELECT));
+}
+
+AMX_DECLARE_NATIVE(Native::DCC_CreateChannelSelect)
+{
+	return CreateSelectNative(amx, params, static_cast<int>(DiscordComponentType::CHANNEL_SELECT));
+}
+
+// native DCC_AddSelectOption(...);
+AMX_DECLARE_NATIVE(Native::DCC_AddSelectOption)
+{
+	ComponentId_t id = static_cast<ComponentId_t>(params[1]);
+	auto const& component = ComponentManager::Get()->Find(id);
+	if (!component) return 0;
+
+	auto label = amx_GetCppString(amx, params[2]);
+	auto value = amx_GetCppString(amx, params[3]);
+	auto description = amx_GetCppString(amx, params[4]);
+	auto emoji = amx_GetCppString(amx, params[5]);
+	bool is_default = params[6] != 0;
+
+	if (label.empty() || label.length() > 100 || value.empty() || value.length() > 100 ||
+		description.length() > 100)
+		return 0;
+
+	return component->AddSelectOption(label, value, description, emoji, is_default) ? 1 : 0;
+}
+
+// native DCC_AddComponentToRow(DCC_Component:row, DCC_Component:component);
+AMX_DECLARE_NATIVE(Native::DCC_AddComponentToRow)
+{
+	auto const& row = ComponentManager::Get()->Find(static_cast<ComponentId_t>(params[1]));
+	auto const& component = ComponentManager::Get()->Find(static_cast<ComponentId_t>(params[2]));
+	if (!row || !component) return 0;
+	return row->AddChild(*component) ? 1 : 0;
+}
+
+// native DCC_DeleteComponent(DCC_Component:component);
+AMX_DECLARE_NATIVE(Native::DCC_DeleteComponent)
+{
+	return ComponentManager::Get()->Delete(static_cast<ComponentId_t>(params[1])) ? 1 : 0;
+}
+
+// native DCC_SendChannelMessageComponents(...);
+AMX_DECLARE_NATIVE(Native::DCC_SendChannelMessageComponents)
+{
+	ChannelId_t channelid = static_cast<ChannelId_t>(params[1]);
+	auto const& channel = ChannelManager::Get()->FindChannel(channelid);
+	if (!channel) return 0;
+
+	auto message = amx_GetCppString(amx, params[2]);
+	if (message.length() > 2000) return 0;
+
+	json rows = json::array();
+	for (int i = 3; i <= 7; ++i)
+	{
+		ComponentId_t rowid = static_cast<ComponentId_t>(params[i]);
+		if (rowid == INVALID_COMPONENT_ID) continue;
+
+		auto const& row = ComponentManager::Get()->Find(rowid);
+		if (!row || row->GetType() != DiscordComponentType::ACTION_ROW)
+			return 0;
+		rows.push_back(row->GetData());
+	}
+
+	if (rows.empty() || rows.size() > 5) return 0;
+
+	auto cb_name = amx_GetCppString(amx, params[8]);
+	auto cb_format = amx_GetCppString(amx, params[9]);
+	pawn_cb::Error cb_error;
+	auto cb = pawn_cb::Callback::Prepare(amx, cb_name.c_str(), cb_format.c_str(), params, 10, cb_error);
+	if (cb_error && cb_error.get() != pawn_cb::Error::Type::EMPTY_NAME) return 0;
+
+	channel->SendMessageWithComponents(std::move(message), rows, std::move(cb));
+	return 1;
+}
+
+// native DCC_SendChannelEmbedMessageComponents(...);
+AMX_DECLARE_NATIVE(Native::DCC_SendChannelEmbedMessageComponents)
+{
+	ChannelId_t channelid = static_cast<ChannelId_t>(params[1]);
+	auto const& channel = ChannelManager::Get()->FindChannel(channelid);
+	if (!channel) return 0;
+
+	EmbedId_t embedid = static_cast<EmbedId_t>(params[2]);
+	auto const& embed = EmbedManager::Get()->FindEmbed(embedid);
+	if (!embed) return 0;
+
+	auto message = amx_GetCppString(amx, params[3]);
+	if (message.length() > 2000) return 0;
+
+	json rows = json::array();
+	for (int i = 4; i <= 8; ++i)
+	{
+		ComponentId_t rowid = static_cast<ComponentId_t>(params[i]);
+		if (rowid == INVALID_COMPONENT_ID) continue;
+
+		auto const& row = ComponentManager::Get()->Find(rowid);
+		if (!row || row->GetType() != DiscordComponentType::ACTION_ROW)
+			return 0;
+		rows.push_back(row->GetData());
+	}
+
+	if (rows.empty() || rows.size() > 5) return 0;
+
+	auto cb_name = amx_GetCppString(amx, params[9]);
+	auto cb_format = amx_GetCppString(amx, params[10]);
+	pawn_cb::Error cb_error;
+	auto cb = pawn_cb::Callback::Prepare(amx, cb_name.c_str(), cb_format.c_str(), params, 11, cb_error);
+	if (cb_error && cb_error.get() != pawn_cb::Error::Type::EMPTY_NAME) return 0;
+
+	channel->SendEmbeddedMessageWithComponents(embed, std::move(message), rows, std::move(cb));
+	EmbedManager::Get()->DeleteEmbed(embedid);
+	return 1;
+}
+
+// native DCC_Modal:DCC_CreateModal(const custom_id[], const title[]);
+AMX_DECLARE_NATIVE(Native::DCC_CreateModal)
+{
+	auto custom_id = amx_GetCppString(amx, params[1]);
+	auto title = amx_GetCppString(amx, params[2]);
+	if (custom_id.empty() || custom_id.length() > 100 || title.empty() || title.length() > 45)
+		return INVALID_MODAL_ID;
+	return ModalManager::Get()->Create(custom_id, title);
+}
+
+// native DCC_AddModalTextInput(...);
+AMX_DECLARE_NATIVE(Native::DCC_AddModalTextInput)
+{
+	ModalId_t modalid = static_cast<ModalId_t>(params[1]);
+	auto const& modal = ModalManager::Get()->Find(modalid);
+	if (!modal) return 0;
+
+	auto custom_id = amx_GetCppString(amx, params[2]);
+	auto label = amx_GetCppString(amx, params[3]);
+	int style = static_cast<int>(params[4]);
+	auto placeholder = amx_GetCppString(amx, params[5]);
+	bool required = params[6] != 0;
+	int min_length = static_cast<int>(params[7]);
+	int max_length = static_cast<int>(params[8]);
+	auto value = amx_GetCppString(amx, params[9]);
+
+	if (custom_id.length() > 100 || label.length() > 45 || placeholder.length() > 100)
+		return 0;
+
+	return modal->AddTextInput(custom_id, label, style, placeholder, required,
+		min_length, max_length, value) ? 1 : 0;
+}
+
+// native DCC_ShowModal(DCC_Interaction:interaction, DCC_Modal:modal);
+AMX_DECLARE_NATIVE(Native::DCC_ShowModal)
+{
+	auto const& interaction = CommandInteractionManager::Get()->FindCommandInteraction(
+		static_cast<CommandInteractionId_t>(params[1]));
+	if (!interaction) return 0;
+	return interaction->ShowModal(static_cast<ModalId_t>(params[2])) ? 1 : 0;
+}
+
+// native DCC_DeleteModal(DCC_Modal:modal);
+AMX_DECLARE_NATIVE(Native::DCC_DeleteModal)
+{
+	return ModalManager::Get()->Delete(static_cast<ModalId_t>(params[1])) ? 1 : 0;
 }
 
 // native DCC_DeleteCommand(DCC_Command:command);
