@@ -38,8 +38,13 @@ jobs:
     steps:
       - name: Baixar código-fonte
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
+
+      - name: Baixar submódulos e corrigir URL legada
+        shell: bash
+        run: |
+          git config --global url."https://github.com/AmyrAhmady/samp-cmake-modules.git".insteadOf "https://github.com/Zeex/cmake-modules.git"
+          git submodule sync --recursive
+          git submodule update --init --recursive
 
       - name: Definir versão da compilação
         shell: bash
