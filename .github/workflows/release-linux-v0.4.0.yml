@@ -1,0 +1,83 @@
+name: Release Linux v0.4.0
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/release-linux-v0.4.0.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release-linux:
+    runs-on: ubuntu-22.04
+    env:
+      CONAN_REVISIONS_ENABLED: 1
+
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+
+      - name: Preparar submódulos
+        shell: bash
+        run: |
+          git config --global url."https://github.com/AmyrAhmady/samp-cmake-modules.git".insteadOf "https://github.com/Zeex/cmake-modules.git"
+          git submodule sync --recursive
+          git submodule update --init --recursive
+
+      - name: Instalar dependências
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-multilib g++-multilib zip
+          python -m pip install --upgrade pip
+          python -m pip install "conan<2" "cmake<4"
+
+      - name: Configurar build Linux i386
+        shell: bash
+        run: |
+          cmake -S . -B build \
+            -G "Unix Makefiles" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_FLAGS="-m32" \
+            -DCMAKE_CXX_FLAGS="-m32" \
+            -DCMAKE_EXE_LINKER_FLAGS="-m32" \
+            -DCMAKE_SHARED_LINKER_FLAGS="-m32" \
+            -DCMAKE_MODULE_LINKER_FLAGS="-m32" \
+            -DSAMPSDK_DIR="$GITHUB_WORKSPACE/libs/sdk" \
+            -DSAMPSDK_INCLUDE_DIR="$GITHUB_WORKSPACE/libs/sdk" \
+            -DDCC_VERSION="0.4.0"
+
+      - name: Compilar
+        shell: bash
+        run: cmake --build build -j2
+
+      - name: Criar ZIP público
+        shell: bash
+        run: |
+          mkdir -p release
+          plugin="$(find build -type f -name discord-connector.so | head -n 1)"
+          include="build/artifact/pawno/include/discord-connector.inc"
+          test -f "$plugin"
+          test -f "$include"
+          cp "$plugin" release/discord-connector.so
+          cp "$include" release/discord-connector.inc
+          (cd release && zip ../discord-connector-modern-v0.4.0-linux-i386.zip discord-connector.so discord-connector.inc)
+          unzip -l discord-connector-modern-v0.4.0-linux-i386.zip
+          sha256sum discord-connector-modern-v0.4.0-linux-i386.zip
+
+      - name: Publicar Release v0.4.0
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          FILE="discord-connector-modern-v0.4.0-linux-i386.zip"
+          NOTES="Versão Linux i386 pública do samp-discord-connector-modern v0.4.0. Desenvolvida inicialmente para o Rocha Roleplay e disponibilizada para a comunidade SA-MP/open.mp. O ZIP contém o plugin discord-connector.so e o include discord-connector.inc."
+          if gh release view v0.4.0 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload v0.4.0 "$FILE" --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create v0.4.0 "$FILE" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "v0.4.0 - Linux i386" --notes "$NOTES"
+          fi
