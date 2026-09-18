@@ -18,7 +18,7 @@ jobs:
       - name: Baixar ZIP compilado e validar
         shell: bash
         run: |
-          URL="https://piece-jose-indiana-boards.trycloudflare.com/discord-connector-modern-v0.4.0-linux-i386.zip"
+          URL="http://85.9.192.100:18080/discord-connector-modern-v0.4.0-linux-i386.zip"
           FILE="discord-connector-modern-v0.4.0-linux-i386.zip"
           for tentativa in 1 2 3 4 5 6; do
             if curl -L --fail --retry 3 --retry-delay 2 "$URL" -o "$FILE"; then
