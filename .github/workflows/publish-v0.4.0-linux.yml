@@ -1,0 +1,47 @@
+name: Publicar v0.4.0 Linux
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/publish-v0.4.0-linux.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publicar:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Baixar ZIP compilado e validar
+        shell: bash
+        run: |
+          URL="https://piece-jose-indiana-boards.trycloudflare.com/discord-connector-modern-v0.4.0-linux-i386.zip"
+          FILE="discord-connector-modern-v0.4.0-linux-i386.zip"
+          for tentativa in 1 2 3 4 5 6; do
+            if curl -L --fail --retry 3 --retry-delay 2 "$URL" -o "$FILE"; then
+              break
+            fi
+            sleep 5
+          done
+          test -f "$FILE"
+          echo "4440298e625d3520a5b42e0c80b1a9f387291ce35186aaf95dc8a47083fa95c5  $FILE" | sha256sum -c -
+          unzip -l "$FILE"
+          unzip -Z1 "$FILE" | sort > /tmp/lista.txt
+          printf 'discord-connector.inc\ndiscord-connector.so\n' > /tmp/esperado.txt
+          diff -u /tmp/esperado.txt /tmp/lista.txt
+
+      - name: Publicar Release v0.4.0
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          FILE="discord-connector-modern-v0.4.0-linux-i386.zip"
+          NOTES="Versão Linux i386 pública do samp-discord-connector-modern v0.4.0. Desenvolvida inicialmente para o Rocha Roleplay e disponibilizada para a comunidade SA-MP/open.mp. O ZIP contém apenas discord-connector.so e discord-connector.inc."
+          if gh release view v0.4.0 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload v0.4.0 "$FILE" --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create v0.4.0 "$FILE" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "v0.4.0 - Linux i386" --notes "$NOTES"
+          fi
