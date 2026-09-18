@@ -329,6 +329,8 @@ extern "C" const AMX_NATIVE_INFO native_list[] =
 	AMX_DEFINE_NATIVE(DCC_DeleteComponent)
 	AMX_DEFINE_NATIVE(DCC_SendChannelMessageComponents)
 	AMX_DEFINE_NATIVE(DCC_SendChannelEmbedMessageComponents)
+	{"DCC_SendMessageComponents", Native::DCC_SendChannelMessageComponents},
+	{"DCC_SendEmbedComponents", Native::DCC_SendChannelEmbedMessageComponents},
 
 	AMX_DEFINE_NATIVE(DCC_CreateFileUpload)
 	AMX_DEFINE_NATIVE(DCC_AddFileUploadType)
