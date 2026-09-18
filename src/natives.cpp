@@ -3397,6 +3397,46 @@ AMX_DECLARE_NATIVE(Native::DCC_SendChannelEmbedMessageComponents)
 	return 1;
 }
 
+// native DCC_Component:DCC_CreateFileUpload(const custom_id[], min_values = 1, max_values = 1, bool:required = true);
+AMX_DECLARE_NATIVE(Native::DCC_CreateFileUpload)
+{
+	auto custom_id = amx_GetCppString(amx, params[1]);
+	return ComponentManager::Get()->CreateFileUpload(
+		custom_id, static_cast<int>(params[2]), static_cast<int>(params[3]), params[4] != 0);
+}
+
+// native DCC_AddFileUploadType(DCC_Component:upload, const file_type[]);
+AMX_DECLARE_NATIVE(Native::DCC_AddFileUploadType)
+{
+	auto file_type = amx_GetCppString(amx, params[2]);
+	return ComponentManager::Get()->AddFileType(
+		static_cast<ComponentId_t>(params[1]), file_type) ? 1 : 0;
+}
+
+// native DCC_Component:DCC_CreateRadioGroup(const custom_id[], bool:required = true);
+AMX_DECLARE_NATIVE(Native::DCC_CreateRadioGroup)
+{
+	auto custom_id = amx_GetCppString(amx, params[1]);
+	return ComponentManager::Get()->CreateChoiceGroup(
+		static_cast<int>(DiscordComponentType::RADIO_GROUP), custom_id, 1, 1, params[2] != 0);
+}
+
+// native DCC_Component:DCC_CreateCheckboxGroup(const custom_id[], min_values = 1, max_values = 10, bool:required = true);
+AMX_DECLARE_NATIVE(Native::DCC_CreateCheckboxGroup)
+{
+	auto custom_id = amx_GetCppString(amx, params[1]);
+	return ComponentManager::Get()->CreateChoiceGroup(
+		static_cast<int>(DiscordComponentType::CHECKBOX_GROUP), custom_id,
+		static_cast<int>(params[2]), static_cast<int>(params[3]), params[4] != 0);
+}
+
+// native DCC_Component:DCC_CreateCheckbox(const custom_id[], bool:is_default = false);
+AMX_DECLARE_NATIVE(Native::DCC_CreateCheckbox)
+{
+	auto custom_id = amx_GetCppString(amx, params[1]);
+	return ComponentManager::Get()->CreateCheckbox(custom_id, params[2] != 0);
+}
+
 // native DCC_Modal:DCC_CreateModal(const custom_id[], const title[]);
 AMX_DECLARE_NATIVE(Native::DCC_CreateModal)
 {
@@ -3454,6 +3494,18 @@ AMX_DECLARE_NATIVE(Native::DCC_AddModalTextDisplay)
 
 	auto content = amx_GetCppString(amx, params[2]);
 	return modal->AddTextDisplay(content) ? 1 : 0;
+}
+
+// native DCC_AddModalComponent(DCC_Modal:modal, DCC_Component:component, const label[], const description[] = "");
+AMX_DECLARE_NATIVE(Native::DCC_AddModalComponent)
+{
+	auto const& modal = ModalManager::Get()->Find(static_cast<ModalId_t>(params[1]));
+	auto const& component = ComponentManager::Get()->Find(static_cast<ComponentId_t>(params[2]));
+	if (!modal || !component) return 0;
+
+	auto label = amx_GetCppString(amx, params[3]);
+	auto description = amx_GetCppString(amx, params[4]);
+	return modal->AddInputComponent(*component, label, description) ? 1 : 0;
 }
 
 // native DCC_ShowModal(DCC_Interaction:interaction, DCC_Modal:modal);
