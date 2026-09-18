@@ -184,6 +184,13 @@ void CommandInteraction::ParseModalComponents(nlohmann::json const& components)
 		return;
 	}
 
+	auto value_it = components.find("value");
+	if (value_it != components.end() && value_it->is_boolean())
+	{
+		m_ModalValues[custom_id] = value_it->get<bool>() ? "true" : "false";
+		return;
+	}
+
 	if (components.find("values") != components.end() && components.at("values").is_array())
 	{
 		std::string joined;
