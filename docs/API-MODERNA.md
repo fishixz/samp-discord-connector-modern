@@ -62,3 +62,66 @@ DCC_DeleteModal(modal);
 ```
 
 Excluir o objeto interno depois que a requisição já foi montada/enviada não remove o componente da mensagem publicada no Discord.
+
+
+## Componentes atuais de modal
+
+A API também cobre os controles adicionados pelo Discord aos modais modernos.
+
+### Select em modal
+
+Qualquer String/User/Role/Mentionable/Channel Select criado pelas natives correspondentes pode ser colocado no modal:
+
+```pawn
+new DCC_Component:select = DCC_CreateRoleSelect("cargo");
+DCC_AddModalSelect(modal, select, "Escolha um cargo");
+DCC_DeleteComponent(select);
+```
+
+### Text Display
+
+```pawn
+DCC_AddModalTextDisplay(modal, "**Leia antes de continuar.**");
+```
+
+### File Upload
+
+```pawn
+new DCC_Component:upload = DCC_CreateFileUpload("anexo", 1, 3);
+DCC_AddFileUploadType(upload, "image");
+DCC_AddFileUploadType(upload, ".pdf");
+DCC_AddModalComponent(modal, upload, "Envie os arquivos");
+DCC_DeleteComponent(upload);
+```
+
+Os IDs enviados pelo File Upload podem ser obtidos com `DCC_GetInteractionModalValue`, separados por vírgula quando houver mais de um arquivo.
+
+### Radio Group
+
+```pawn
+new DCC_Component:radio = DCC_CreateRadioGroup("classe");
+DCC_AddSelectOption(radio, "Policial", "policial");
+DCC_AddSelectOption(radio, "Mecânico", "mecanico");
+DCC_AddModalComponent(modal, radio, "Escolha uma classe");
+DCC_DeleteComponent(radio);
+```
+
+### Checkbox Group
+
+```pawn
+new DCC_Component:grupo = DCC_CreateCheckboxGroup("beneficios", 0, 3, false);
+DCC_AddSelectOption(grupo, "VIP", "vip");
+DCC_AddSelectOption(grupo, "Whitelist", "wl");
+DCC_AddModalComponent(modal, grupo, "Selecione opções");
+DCC_DeleteComponent(grupo);
+```
+
+### Checkbox
+
+```pawn
+new DCC_Component:check = DCC_CreateCheckbox("aceito");
+DCC_AddModalComponent(modal, check, "Aceito os termos");
+DCC_DeleteComponent(check);
+```
+
+O valor de um Checkbox é retornado como `"true"` ou `"false"` por `DCC_GetInteractionModalValue`.
