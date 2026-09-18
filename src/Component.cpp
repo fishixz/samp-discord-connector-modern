@@ -24,7 +24,7 @@ bool Component::AddChild(Component const& child)
 	if (child_type == DiscordComponentType::ACTION_ROW || child_type == DiscordComponentType::TEXT_INPUT)
 		return false;
 
-	if (!m_Data.contains("components"))
+	if (m_Data.find("components") == m_Data.end())
 		m_Data["components"] = json::array();
 
 	auto& children = m_Data["components"];
@@ -52,7 +52,7 @@ bool Component::AddSelectOption(std::string const& label, std::string const& val
 	if (GetType() != DiscordComponentType::STRING_SELECT)
 		return false;
 
-	if (!m_Data.contains("options"))
+	if (m_Data.find("options") == m_Data.end())
 		m_Data["options"] = json::array();
 
 	auto& options = m_Data["options"];
