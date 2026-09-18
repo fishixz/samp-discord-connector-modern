@@ -3245,11 +3245,12 @@ AMX_DECLARE_NATIVE(Native::DCC_CreateButton)
 	bool disabled = params[4] != 0;
 	auto emoji = amx_GetCppString(amx, params[5]);
 	auto url = amx_GetCppString(amx, params[6]);
+	auto sku_id = amx_GetCppString(amx, params[7]);
 
-	if (custom_id.length() > 100 || label.empty() || label.length() > 80)
+	if (custom_id.length() > 100 || label.length() > 80 || url.length() > 512)
 		return INVALID_COMPONENT_ID;
 
-	return ComponentManager::Get()->CreateButton(custom_id, label, style, disabled, emoji, url);
+	return ComponentManager::Get()->CreateButton(custom_id, label, style, disabled, emoji, url, sku_id);
 }
 
 static cell CreateSelectNative(AMX* amx, cell* params, int type)
