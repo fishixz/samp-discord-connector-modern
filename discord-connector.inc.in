@@ -60,7 +60,11 @@ enum DCC_ComponentType
 	DCC_COMPONENT_MENTIONABLE_SELECT = 7,
 	DCC_COMPONENT_CHANNEL_SELECT = 8,
 	DCC_COMPONENT_TEXT_DISPLAY = 10,
-	DCC_COMPONENT_LABEL = 18
+	DCC_COMPONENT_LABEL = 18,
+	DCC_COMPONENT_FILE_UPLOAD = 19,
+	DCC_COMPONENT_RADIO_GROUP = 21,
+	DCC_COMPONENT_CHECKBOX_GROUP = 22,
+	DCC_COMPONENT_CHECKBOX = 23
 };
 
 enum DCC_ButtonStyle
@@ -290,10 +294,17 @@ native DCC_DeleteComponent(DCC_Component:component);
 native DCC_SendChannelMessageComponents(DCC_Channel:channel, const message[], DCC_Component:row1, DCC_Component:row2 = DCC_INVALID_COMPONENT, DCC_Component:row3 = DCC_INVALID_COMPONENT, DCC_Component:row4 = DCC_INVALID_COMPONENT, DCC_Component:row5 = DCC_INVALID_COMPONENT, const callback[] = "", const format[] = "", {Float, _}:...);
 native DCC_SendChannelEmbedMessageComponents(DCC_Channel:channel, DCC_Embed:embed, const message[], DCC_Component:row1, DCC_Component:row2 = DCC_INVALID_COMPONENT, DCC_Component:row3 = DCC_INVALID_COMPONENT, DCC_Component:row4 = DCC_INVALID_COMPONENT, DCC_Component:row5 = DCC_INVALID_COMPONENT, const callback[] = "", const format[] = "", {Float, _}:...);
 
+native DCC_Component:DCC_CreateFileUpload(const custom_id[], min_values = 1, max_values = 1, bool:required = true);
+native DCC_AddFileUploadType(DCC_Component:upload, const file_type[]);
+native DCC_Component:DCC_CreateRadioGroup(const custom_id[], bool:required = true);
+native DCC_Component:DCC_CreateCheckboxGroup(const custom_id[], min_values = 1, max_values = 10, bool:required = true);
+native DCC_Component:DCC_CreateCheckbox(const custom_id[], bool:is_default = false);
+
 native DCC_Modal:DCC_CreateModal(const custom_id[], const title[]);
 native DCC_AddModalTextInput(DCC_Modal:modal, const custom_id[], const label[], DCC_TextInputStyle:style = DCC_TEXT_INPUT_SHORT, const placeholder[] = "", bool:required = true, min_length = 0, max_length = 4000, const value[] = "", const description[] = "");
 native DCC_AddModalSelect(DCC_Modal:modal, DCC_Component:select, const label[], const description[] = "", bool:required = true);
 native DCC_AddModalTextDisplay(DCC_Modal:modal, const content[]);
+native DCC_AddModalComponent(DCC_Modal:modal, DCC_Component:component, const label[], const description[] = "");
 native DCC_ShowModal(DCC_Interaction:interaction, DCC_Modal:modal);
 native DCC_DeleteModal(DCC_Modal:modal);
 
