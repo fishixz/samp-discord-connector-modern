@@ -166,6 +166,8 @@ namespace Native
 
 	AMX_DECLARE_NATIVE(DCC_CreateModal);
 	AMX_DECLARE_NATIVE(DCC_AddModalTextInput);
+	AMX_DECLARE_NATIVE(DCC_AddModalSelect);
+	AMX_DECLARE_NATIVE(DCC_AddModalTextDisplay);
 	AMX_DECLARE_NATIVE(DCC_ShowModal);
 	AMX_DECLARE_NATIVE(DCC_DeleteModal);
 
