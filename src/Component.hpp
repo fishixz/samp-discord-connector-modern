@@ -19,7 +19,9 @@ enum class DiscordComponentType : int
 	USER_SELECT = 5,
 	ROLE_SELECT = 6,
 	MENTIONABLE_SELECT = 7,
-	CHANNEL_SELECT = 8
+	CHANNEL_SELECT = 8,
+	TEXT_DISPLAY = 10,
+	LABEL = 18
 };
 
 enum class DiscordButtonStyle : int
@@ -87,7 +89,10 @@ public:
 
 	bool AddTextInput(std::string const& custom_id, std::string const& label, int style,
 		std::string const& placeholder, bool required, int min_length, int max_length,
-		std::string const& value);
+		std::string const& value, std::string const& description);
+	bool AddSelect(Component const& select, std::string const& label,
+		std::string const& description, bool required);
+	bool AddTextDisplay(std::string const& content);
 
 private:
 	ModalId_t m_Id;
