@@ -15,8 +15,14 @@ Primeira versão moderna desenvolvida inicialmente para o **Rocha Roleplay** e d
 - Role Select Menu;
 - Mentionable Select Menu;
 - Channel Select Menu;
-- modais nativos;
+- modais nativos com a estrutura atual de Label;
 - campos Text Input curtos e em parágrafo;
+- selects dentro de modais;
+- Text Display dentro de modais;
+- File Upload;
+- Radio Group;
+- Checkbox Group;
+- Checkbox individual;
 - callback `DCC_OnButtonInteraction`;
 - callback `DCC_OnSelectInteraction`;
 - callback `DCC_OnModalSubmit`;
