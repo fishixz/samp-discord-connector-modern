@@ -283,6 +283,134 @@ void Channel::SendEmbeddedMessage(const Embed_t & embed, std::string&& msg, pawn
 		std::move(response_cb));
 }
 
+
+void Channel::SendMessageWithComponents(std::string &&msg, json const& components, pawn_cb::Callback_t &&cb)
+{
+	json data = {
+		{ "content", std::move(msg) },
+		{ "components", components }
+	};
+
+	std::string json_str;
+	if (!utils::TryDumpJson(data, json_str))
+	{
+		Logger::Get()->Log(samplog_LogLevel::ERROR, "can't serialize JSON: {}", json_str);
+		return;
+	}
+
+	Http::ResponseCb_t response_cb;
+	if (cb)
+	{
+		response_cb = [cb](Http::Response response)
+		{
+			Logger::Get()->Log(samplog_LogLevel::DEBUG,
+				"channel component message create response: status {}; body: {}",
+				response.status, response.body);
+
+			if (response.status / 100 == 2)
+			{
+				auto msg_json = json::parse(response.body);
+				PawnDispatcher::Get()->Dispatch([cb, msg_json]() mutable
+				{
+					auto msg = MessageManager::Get()->Create(msg_json);
+					if (msg != INVALID_MESSAGE_ID)
+					{
+						MessageManager::Get()->SetCreatedMessageId(msg);
+						cb->Execute();
+						if (!MessageManager::Get()->Find(msg)->Persistent())
+							MessageManager::Get()->Delete(msg);
+						MessageManager::Get()->SetCreatedMessageId(INVALID_MESSAGE_ID);
+					}
+				});
+			}
+		};
+	}
+
+	Network::Get()->Http().Post(fmt::format("/channels/{:s}/messages", GetId()), json_str,
+		std::move(response_cb));
+}
+
+void Channel::SendEmbeddedMessageWithComponents(const Embed_t &embed, std::string &&msg,
+	json const& components, pawn_cb::Callback_t &&cb)
+{
+	json data = {
+		{ "content", std::move(msg) },
+		{ "components", components },
+		{ "embeds", { json::object() } }
+	};
+
+	data["embeds"][0] = json::object({
+		{ "title", embed->GetTitle() },
+		{ "description", embed->GetDescription() },
+		{ "url", embed->GetUrl() },
+		{ "timestamp", embed->GetTimestamp() },
+		{ "color", embed->GetColor() },
+		{ "footer", {
+			{"text", embed->GetFooterText()},
+			{"icon_url", embed->GetFooterIconUrl()},
+		} },
+		{ "thumbnail", json::object() },
+		{ "image", json::object() }
+	});
+
+	if (!embed->GetThumbnailUrl().empty())
+		data["embeds"][0]["thumbnail"]["url"] = embed->GetThumbnailUrl();
+	if (!embed->GetImageUrl().empty())
+		data["embeds"][0]["image"]["url"] = embed->GetImageUrl();
+
+	if (embed->GetFields().size())
+	{
+		json field_array = json::array();
+		for (const auto& i : embed->GetFields())
+		{
+			field_array.push_back({
+				{"name", i._name},
+				{"value", i._value},
+				{"inline", i._inline_}
+			});
+		}
+		data["embeds"][0]["fields"] = field_array;
+	}
+
+	std::string json_str;
+	if (!utils::TryDumpJson(data, json_str))
+	{
+		Logger::Get()->Log(samplog_LogLevel::ERROR, "can't serialize JSON: {}", json_str);
+		return;
+	}
+
+	Http::ResponseCb_t response_cb;
+	if (cb)
+	{
+		response_cb = [cb](Http::Response response)
+		{
+			Logger::Get()->Log(samplog_LogLevel::DEBUG,
+				"channel component embed create response: status {}; body: {}",
+				response.status, response.body);
+
+			if (response.status / 100 == 2)
+			{
+				auto msg_json = json::parse(response.body);
+				PawnDispatcher::Get()->Dispatch([cb, msg_json]() mutable
+				{
+					auto msg = MessageManager::Get()->Create(msg_json);
+					if (msg != INVALID_MESSAGE_ID)
+					{
+						MessageManager::Get()->SetCreatedMessageId(msg);
+						cb->Execute();
+						if (!MessageManager::Get()->Find(msg)->Persistent())
+							MessageManager::Get()->Delete(msg);
+						MessageManager::Get()->SetCreatedMessageId(INVALID_MESSAGE_ID);
+					}
+				});
+			}
+		};
+	}
+
+	Network::Get()->Http().Post(fmt::format("/channels/{:s}/messages", GetId()), json_str,
+		std::move(response_cb));
+}
+
 void ChannelManager::Initialize()
 {
 	assert(m_Initialized != m_InitValue);
