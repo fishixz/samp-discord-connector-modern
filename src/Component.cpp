@@ -95,14 +95,23 @@ ComponentId_t ComponentManager::CreateActionRow()
 }
 
 ComponentId_t ComponentManager::CreateButton(std::string const& custom_id, std::string const& label,
-	int style, bool disabled, std::string const& emoji, std::string const& url)
+	int style, bool disabled, std::string const& emoji, std::string const& url,
+	std::string const& sku_id)
 {
 	if (style < static_cast<int>(DiscordButtonStyle::PRIMARY) ||
-		style > static_cast<int>(DiscordButtonStyle::LINK))
+		style > static_cast<int>(DiscordButtonStyle::PREMIUM))
 		return INVALID_COMPONENT_ID;
 
 	bool is_link = style == static_cast<int>(DiscordButtonStyle::LINK);
-	if ((is_link && url.empty()) || (!is_link && custom_id.empty()))
+	bool is_premium = style == static_cast<int>(DiscordButtonStyle::PREMIUM);
+
+	if (is_link && (url.empty() || url.length() > 512))
+		return INVALID_COMPONENT_ID;
+	if (is_premium && sku_id.empty())
+		return INVALID_COMPONENT_ID;
+	if (!is_link && !is_premium && custom_id.empty())
+		return INVALID_COMPONENT_ID;
+	if (!is_premium && label.empty() && emoji.empty())
 		return INVALID_COMPONENT_ID;
 
 	ComponentId_t id = 1;
@@ -112,17 +121,25 @@ ComponentId_t ComponentManager::CreateButton(std::string const& custom_id, std::
 	json data = {
 		{ "type", static_cast<int>(DiscordComponentType::BUTTON) },
 		{ "style", style },
-		{ "label", label },
 		{ "disabled", disabled }
 	};
 
-	if (is_link)
-		data["url"] = url;
+	if (is_premium)
+	{
+		data["sku_id"] = sku_id;
+	}
 	else
-		data["custom_id"] = custom_id;
+	{
+		if (!label.empty())
+			data["label"] = label;
+		if (!emoji.empty())
+			data["emoji"] = { { "name", emoji } };
 
-	if (!emoji.empty())
-		data["emoji"] = { { "name", emoji } };
+		if (is_link)
+			data["url"] = url;
+		else
+			data["custom_id"] = custom_id;
+	}
 
 	m_Components.emplace(id, Component_t(new Component(id, std::move(data))));
 	return id;
@@ -201,7 +218,8 @@ ComponentId_t ComponentManager::CreateChoiceGroup(int type, std::string const& c
 		min_values = 1;
 		max_values = 1;
 	}
-	else if (min_values < 0 || max_values < 1 || min_values > max_values || max_values > 10)
+	else if (min_values < 0 || max_values < 1 || min_values > max_values || max_values > 10 ||
+		(required && min_values == 0))
 	{
 		return INVALID_COMPONENT_ID;
 	}
