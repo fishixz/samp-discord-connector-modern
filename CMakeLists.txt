@@ -9,10 +9,8 @@ endif()
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/libs/cmake")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-
-if(MSVC)
-	set(CMAKE_BUILD_TYPE "" CACHE STRING "" FORCE)
-endif()
+# Geradores single-config (NMake/Unix Makefiles) precisam manter CMAKE_BUILD_TYPE.
+# O upstream limpava essa variável no MSVC, o que impedia o Conan de configurar builds x86 modernos.
 
 if(UNIX)
 	set(
