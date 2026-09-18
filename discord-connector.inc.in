@@ -73,7 +73,8 @@ enum DCC_ButtonStyle
 	DCC_BUTTON_SECONDARY = 2,
 	DCC_BUTTON_SUCCESS = 3,
 	DCC_BUTTON_DANGER = 4,
-	DCC_BUTTON_LINK = 5
+	DCC_BUTTON_LINK = 5,
+	DCC_BUTTON_PREMIUM = 6
 };
 
 enum DCC_TextInputStyle
@@ -282,7 +283,7 @@ native DCC_GetInteractionModalValue(DCC_Interaction:interaction, const field_id[
 native DCC_UpdateInteractionMessage(DCC_Interaction:interaction, const message[] = "");
 
 native DCC_Component:DCC_CreateActionRow();
-native DCC_Component:DCC_CreateButton(const custom_id[], const label[], DCC_ButtonStyle:style = DCC_BUTTON_PRIMARY, bool:disabled = false, const emoji[] = "", const url[] = "");
+native DCC_Component:DCC_CreateButton(const custom_id[], const label[], DCC_ButtonStyle:style = DCC_BUTTON_PRIMARY, bool:disabled = false, const emoji[] = "", const url[] = "", const sku_id[] = "");
 native DCC_Component:DCC_CreateStringSelect(const custom_id[], const placeholder[] = "", min_values = 1, max_values = 1, bool:disabled = false);
 native DCC_Component:DCC_CreateUserSelect(const custom_id[], const placeholder[] = "", min_values = 1, max_values = 1, bool:disabled = false);
 native DCC_Component:DCC_CreateRoleSelect(const custom_id[], const placeholder[] = "", min_values = 1, max_values = 1, bool:disabled = false);
