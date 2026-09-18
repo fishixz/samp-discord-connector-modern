@@ -34,7 +34,8 @@ enum class DiscordButtonStyle : int
 	SECONDARY = 2,
 	SUCCESS = 3,
 	DANGER = 4,
-	LINK = 5
+	LINK = 5,
+	PREMIUM = 6
 };
 
 enum class DiscordTextInputStyle : int
@@ -74,7 +75,8 @@ private:
 public:
 	ComponentId_t CreateActionRow();
 	ComponentId_t CreateButton(std::string const& custom_id, std::string const& label,
-		int style, bool disabled, std::string const& emoji, std::string const& url);
+		int style, bool disabled, std::string const& emoji, std::string const& url,
+		std::string const& sku_id);
 	ComponentId_t CreateSelect(int type, std::string const& custom_id, std::string const& placeholder,
 		int min_values, int max_values, bool disabled);
 	ComponentId_t CreateFileUpload(std::string const& custom_id, int min_values, int max_values, bool required);
