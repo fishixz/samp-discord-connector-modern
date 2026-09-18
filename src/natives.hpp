@@ -143,5 +143,30 @@ namespace Native
 	AMX_DECLARE_NATIVE(DCC_GetInteractionGuild);
 	AMX_DECLARE_NATIVE(DCC_SendInteractionEmbed);
 	AMX_DECLARE_NATIVE(DCC_SendInteractionMessage);
+	AMX_DECLARE_NATIVE(DCC_GetInteractionType);
+	AMX_DECLARE_NATIVE(DCC_GetInteractionCustomId);
+	AMX_DECLARE_NATIVE(DCC_GetInteractionComponentType);
+	AMX_DECLARE_NATIVE(DCC_GetInteractionValueCount);
+	AMX_DECLARE_NATIVE(DCC_GetInteractionValue);
+	AMX_DECLARE_NATIVE(DCC_GetInteractionModalValue);
+
+	AMX_DECLARE_NATIVE(DCC_CreateActionRow);
+	AMX_DECLARE_NATIVE(DCC_CreateButton);
+	AMX_DECLARE_NATIVE(DCC_CreateStringSelect);
+	AMX_DECLARE_NATIVE(DCC_CreateUserSelect);
+	AMX_DECLARE_NATIVE(DCC_CreateRoleSelect);
+	AMX_DECLARE_NATIVE(DCC_CreateMentionableSelect);
+	AMX_DECLARE_NATIVE(DCC_CreateChannelSelect);
+	AMX_DECLARE_NATIVE(DCC_AddSelectOption);
+	AMX_DECLARE_NATIVE(DCC_AddComponentToRow);
+	AMX_DECLARE_NATIVE(DCC_DeleteComponent);
+	AMX_DECLARE_NATIVE(DCC_SendChannelMessageComponents);
+	AMX_DECLARE_NATIVE(DCC_SendChannelEmbedMessageComponents);
+
+	AMX_DECLARE_NATIVE(DCC_CreateModal);
+	AMX_DECLARE_NATIVE(DCC_AddModalTextInput);
+	AMX_DECLARE_NATIVE(DCC_ShowModal);
+	AMX_DECLARE_NATIVE(DCC_DeleteModal);
+
 	AMX_DECLARE_NATIVE(DCC_DeleteCommand);
 }
