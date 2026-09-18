@@ -3248,7 +3248,7 @@ AMX_DECLARE_NATIVE(Native::DCC_CreateButton)
 	auto sku_id = amx_GetCppString(amx, params[7]);
 
 	if (custom_id.length() > 100 || label.length() > 80 || url.length() > 512)
-		return INVALID_COMPONENT_ID;
+		return INVALID_DCC_COMPONENT_ID;
 
 	return ComponentManager::Get()->CreateButton(custom_id, label, style, disabled, emoji, url, sku_id);
 }
@@ -3258,7 +3258,7 @@ static cell CreateSelectNative(AMX* amx, cell* params, int type)
 	auto custom_id = amx_GetCppString(amx, params[1]);
 	auto placeholder = amx_GetCppString(amx, params[2]);
 	if (custom_id.empty() || custom_id.length() > 100 || placeholder.length() > 150)
-		return INVALID_COMPONENT_ID;
+		return INVALID_DCC_COMPONENT_ID;
 
 	return ComponentManager::Get()->CreateSelect(
 		type, custom_id, placeholder,
@@ -3339,7 +3339,7 @@ AMX_DECLARE_NATIVE(Native::DCC_SendChannelMessageComponents)
 	for (int i = 3; i <= 7; ++i)
 	{
 		ComponentId_t rowid = static_cast<ComponentId_t>(params[i]);
-		if (rowid == INVALID_COMPONENT_ID) continue;
+		if (rowid == INVALID_DCC_COMPONENT_ID) continue;
 
 		auto const& row = ComponentManager::Get()->Find(rowid);
 		if (!row || row->GetType() != DiscordComponentType::ACTION_ROW)
@@ -3377,7 +3377,7 @@ AMX_DECLARE_NATIVE(Native::DCC_SendChannelEmbedMessageComponents)
 	for (int i = 4; i <= 8; ++i)
 	{
 		ComponentId_t rowid = static_cast<ComponentId_t>(params[i]);
-		if (rowid == INVALID_COMPONENT_ID) continue;
+		if (rowid == INVALID_DCC_COMPONENT_ID) continue;
 
 		auto const& row = ComponentManager::Get()->Find(rowid);
 		if (!row || row->GetType() != DiscordComponentType::ACTION_ROW)
