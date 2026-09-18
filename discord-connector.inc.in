@@ -286,7 +286,7 @@ native DCC_AddSelectOption(DCC_Component:select, const label[], const value[], c
 native DCC_AddComponentToRow(DCC_Component:row, DCC_Component:component);
 native DCC_DeleteComponent(DCC_Component:component);
 native DCC_SendChannelMessageComponents(DCC_Channel:channel, const message[], DCC_Component:row1, DCC_Component:row2 = DCC_INVALID_COMPONENT, DCC_Component:row3 = DCC_INVALID_COMPONENT, DCC_Component:row4 = DCC_INVALID_COMPONENT, DCC_Component:row5 = DCC_INVALID_COMPONENT, const callback[] = "", const format[] = "", {Float, _}:...);
-native DCC_SendChannelEmbedMessageComponents(DCC_Channel:channel, DCC_Embed:embed, const message[] = "", DCC_Component:row1, DCC_Component:row2 = DCC_INVALID_COMPONENT, DCC_Component:row3 = DCC_INVALID_COMPONENT, DCC_Component:row4 = DCC_INVALID_COMPONENT, DCC_Component:row5 = DCC_INVALID_COMPONENT, const callback[] = "", const format[] = "", {Float, _}:...);
+native DCC_SendChannelEmbedMessageComponents(DCC_Channel:channel, DCC_Embed:embed, const message[], DCC_Component:row1, DCC_Component:row2 = DCC_INVALID_COMPONENT, DCC_Component:row3 = DCC_INVALID_COMPONENT, DCC_Component:row4 = DCC_INVALID_COMPONENT, DCC_Component:row5 = DCC_INVALID_COMPONENT, const callback[] = "", const format[] = "", {Float, _}:...);
 
 native DCC_Modal:DCC_CreateModal(const custom_id[], const title[]);
 native DCC_AddModalTextInput(DCC_Modal:modal, const custom_id[], const label[], DCC_TextInputStyle:style = DCC_TEXT_INPUT_SHORT, const placeholder[] = "", bool:required = true, min_length = 0, max_length = 4000, const value[] = "");
