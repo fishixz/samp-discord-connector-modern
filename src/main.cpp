@@ -309,6 +309,32 @@ extern "C" const AMX_NATIVE_INFO native_list[] =
 	AMX_DEFINE_NATIVE(DCC_GetInteractionGuild)
 	AMX_DEFINE_NATIVE(DCC_SendInteractionEmbed)
 	AMX_DEFINE_NATIVE(DCC_SendInteractionMessage)
+	AMX_DEFINE_NATIVE(DCC_GetInteractionType)
+	AMX_DEFINE_NATIVE(DCC_GetInteractionCustomId)
+	AMX_DEFINE_NATIVE(DCC_GetInteractionComponentType)
+	AMX_DEFINE_NATIVE(DCC_GetInteractionValueCount)
+	AMX_DEFINE_NATIVE(DCC_GetInteractionValue)
+	AMX_DEFINE_NATIVE(DCC_GetInteractionModalValue)
+	AMX_DEFINE_NATIVE(DCC_UpdateInteractionMessage)
+
+	AMX_DEFINE_NATIVE(DCC_CreateActionRow)
+	AMX_DEFINE_NATIVE(DCC_CreateButton)
+	AMX_DEFINE_NATIVE(DCC_CreateStringSelect)
+	AMX_DEFINE_NATIVE(DCC_CreateUserSelect)
+	AMX_DEFINE_NATIVE(DCC_CreateRoleSelect)
+	AMX_DEFINE_NATIVE(DCC_CreateMentionableSelect)
+	AMX_DEFINE_NATIVE(DCC_CreateChannelSelect)
+	AMX_DEFINE_NATIVE(DCC_AddSelectOption)
+	AMX_DEFINE_NATIVE(DCC_AddComponentToRow)
+	AMX_DEFINE_NATIVE(DCC_DeleteComponent)
+	AMX_DEFINE_NATIVE(DCC_SendChannelMessageComponents)
+	AMX_DEFINE_NATIVE(DCC_SendChannelEmbedMessageComponents)
+
+	AMX_DEFINE_NATIVE(DCC_CreateModal)
+	AMX_DEFINE_NATIVE(DCC_AddModalTextInput)
+	AMX_DEFINE_NATIVE(DCC_ShowModal)
+	AMX_DEFINE_NATIVE(DCC_DeleteModal)
+
 	AMX_DEFINE_NATIVE(DCC_DeleteCommand)
 	{ NULL, NULL }
 };
