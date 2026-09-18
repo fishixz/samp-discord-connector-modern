@@ -46,3 +46,11 @@ using CommandInteractionId_t = cell;
 const CommandInteractionId_t INVALID_COMMAND_INTERACTION_ID = 0;
 
 using CommandInteractionOption_t = std::unique_ptr<struct CommandInteractionOption>;
+
+using Component_t = std::unique_ptr<class Component>;
+using ComponentId_t = cell;
+const ComponentId_t INVALID_COMPONENT_ID = 0;
+
+using Modal_t = std::unique_ptr<class Modal>;
+using ModalId_t = cell;
+const ModalId_t INVALID_MODAL_ID = 0;
