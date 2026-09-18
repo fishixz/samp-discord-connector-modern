@@ -185,12 +185,13 @@ Modal::Modal(ModalId_t id, std::string custom_id, std::string title) :
 
 bool Modal::AddTextInput(std::string const& custom_id, std::string const& label, int style,
 	std::string const& placeholder, bool required, int min_length, int max_length,
-	std::string const& value)
+	std::string const& value, std::string const& description)
 {
 	if (m_Data["components"].size() >= 5)
 		return false;
 
-	if (custom_id.empty() || label.empty() ||
+	if (custom_id.empty() || custom_id.length() > 100 || label.empty() || label.length() > 45 ||
+		description.length() > 100 ||
 		(style != static_cast<int>(DiscordTextInputStyle::SHORT) &&
 		 style != static_cast<int>(DiscordTextInputStyle::PARAGRAPH)) ||
 		min_length < 0 || max_length < 1 || min_length > max_length || max_length > 4000)
@@ -199,7 +200,6 @@ bool Modal::AddTextInput(std::string const& custom_id, std::string const& label,
 	json input = {
 		{ "type", static_cast<int>(DiscordComponentType::TEXT_INPUT) },
 		{ "custom_id", custom_id },
-		{ "label", label },
 		{ "style", style },
 		{ "required", required },
 		{ "min_length", min_length },
@@ -211,12 +211,60 @@ bool Modal::AddTextInput(std::string const& custom_id, std::string const& label,
 	if (!value.empty())
 		input["value"] = value;
 
-	json row = {
-		{ "type", static_cast<int>(DiscordComponentType::ACTION_ROW) },
-		{ "components", json::array({ std::move(input) }) }
+	json label_component = {
+		{ "type", static_cast<int>(DiscordComponentType::LABEL) },
+		{ "label", label },
+		{ "component", std::move(input) }
 	};
 
-	m_Data["components"].push_back(std::move(row));
+	if (!description.empty())
+		label_component["description"] = description;
+
+	m_Data["components"].push_back(std::move(label_component));
+	return true;
+}
+
+bool Modal::AddSelect(Component const& select, std::string const& label,
+	std::string const& description, bool required)
+{
+	if (m_Data["components"].size() >= 5 || label.empty() || label.length() > 45 ||
+		description.length() > 100)
+		return false;
+
+	auto type = select.GetType();
+	if (type != DiscordComponentType::STRING_SELECT &&
+		type != DiscordComponentType::USER_SELECT &&
+		type != DiscordComponentType::ROLE_SELECT &&
+		type != DiscordComponentType::MENTIONABLE_SELECT &&
+		type != DiscordComponentType::CHANNEL_SELECT)
+		return false;
+
+	json select_data = select.GetData();
+	select_data.erase("disabled");
+	select_data["required"] = required;
+
+	json label_component = {
+		{ "type", static_cast<int>(DiscordComponentType::LABEL) },
+		{ "label", label },
+		{ "component", std::move(select_data) }
+	};
+
+	if (!description.empty())
+		label_component["description"] = description;
+
+	m_Data["components"].push_back(std::move(label_component));
+	return true;
+}
+
+bool Modal::AddTextDisplay(std::string const& content)
+{
+	if (m_Data["components"].size() >= 5 || content.empty())
+		return false;
+
+	m_Data["components"].push_back({
+		{ "type", static_cast<int>(DiscordComponentType::TEXT_DISPLAY) },
+		{ "content", content }
+	});
 	return true;
 }
 
