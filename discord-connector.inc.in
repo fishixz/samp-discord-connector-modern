@@ -39,6 +39,43 @@ enum DCC_BotPresenceStatus
 	OFFLINE
 };
 
+
+enum DCC_InteractionType
+{
+	DCC_INTERACTION_PING = 1,
+	DCC_INTERACTION_APPLICATION_COMMAND = 2,
+	DCC_INTERACTION_MESSAGE_COMPONENT = 3,
+	DCC_INTERACTION_AUTOCOMPLETE = 4,
+	DCC_INTERACTION_MODAL_SUBMIT = 5
+};
+
+enum DCC_ComponentType
+{
+	DCC_COMPONENT_ACTION_ROW = 1,
+	DCC_COMPONENT_BUTTON = 2,
+	DCC_COMPONENT_STRING_SELECT = 3,
+	DCC_COMPONENT_TEXT_INPUT = 4,
+	DCC_COMPONENT_USER_SELECT = 5,
+	DCC_COMPONENT_ROLE_SELECT = 6,
+	DCC_COMPONENT_MENTIONABLE_SELECT = 7,
+	DCC_COMPONENT_CHANNEL_SELECT = 8
+};
+
+enum DCC_ButtonStyle
+{
+	DCC_BUTTON_PRIMARY = 1,
+	DCC_BUTTON_SECONDARY = 2,
+	DCC_BUTTON_SUCCESS = 3,
+	DCC_BUTTON_DANGER = 4,
+	DCC_BUTTON_LINK = 5
+};
+
+enum DCC_TextInputStyle
+{
+	DCC_TEXT_INPUT_SHORT = 1,
+	DCC_TEXT_INPUT_PARAGRAPH = 2
+};
+
 enum DCC_MessageReactionType
 {
 	REACTION_ADD = 0, // Sent when a user adds a reaction to a message.
@@ -51,6 +88,8 @@ enum DCC_MessageReactionType
 #define DCC_INVALID_USER DCC_User:0
 #define DCC_INVALID_ROLE DCC_Role:0
 #define DCC_INVALID_GUILD DCC_Guild:0
+#define DCC_INVALID_COMPONENT DCC_Component:0
+#define DCC_INVALID_MODAL DCC_Modal:0
 
 #define DCC_ID_SIZE (20 + 1)
 #define DCC_USERNAME_SIZE (32 + 1)
@@ -227,7 +266,32 @@ native DCC_GetInteractionContent(DCC_Interaction:interaction, dest[], max_size =
 native DCC_GetInteractionChannel(DCC_Interaction:interaction, &DCC_Channel:channel);
 native DCC_GetInteractionGuild(DCC_Interaction:interaction, &DCC_Guild:guild);
 native DCC_SendInteractionEmbed(DCC_Interaction:interaction, DCC_Embed:embed, const message[] = "");
-native DCC_SendInteractionMessage(DCC_Interaction:interaction, const message[] = "");
+native DCC_SendInteractionMessage(DCC_Interaction:interaction, const message[] = "", bool:ephemeral = false);
+native DCC_GetInteractionType(DCC_Interaction:interaction, &DCC_InteractionType:type);
+native DCC_GetInteractionCustomId(DCC_Interaction:interaction, dest[], max_size = sizeof dest);
+native DCC_GetInteractionComponentType(DCC_Interaction:interaction, &DCC_ComponentType:type);
+native DCC_GetInteractionValueCount(DCC_Interaction:interaction, &value_count);
+native DCC_GetInteractionValue(DCC_Interaction:interaction, index, dest[], max_size = sizeof dest);
+native DCC_GetInteractionModalValue(DCC_Interaction:interaction, const field_id[], dest[], max_size = sizeof dest);
+native DCC_UpdateInteractionMessage(DCC_Interaction:interaction, const message[] = "");
+
+native DCC_Component:DCC_CreateActionRow();
+native DCC_Component:DCC_CreateButton(const custom_id[], const label[], DCC_ButtonStyle:style = DCC_BUTTON_PRIMARY, bool:disabled = false, const emoji[] = "", const url[] = "");
+native DCC_Component:DCC_CreateStringSelect(const custom_id[], const placeholder[] = "", min_values = 1, max_values = 1, bool:disabled = false);
+native DCC_Component:DCC_CreateUserSelect(const custom_id[], const placeholder[] = "", min_values = 1, max_values = 1, bool:disabled = false);
+native DCC_Component:DCC_CreateRoleSelect(const custom_id[], const placeholder[] = "", min_values = 1, max_values = 1, bool:disabled = false);
+native DCC_Component:DCC_CreateMentionableSelect(const custom_id[], const placeholder[] = "", min_values = 1, max_values = 1, bool:disabled = false);
+native DCC_Component:DCC_CreateChannelSelect(const custom_id[], const placeholder[] = "", min_values = 1, max_values = 1, bool:disabled = false);
+native DCC_AddSelectOption(DCC_Component:select, const label[], const value[], const description[] = "", const emoji[] = "", bool:is_default = false);
+native DCC_AddComponentToRow(DCC_Component:row, DCC_Component:component);
+native DCC_DeleteComponent(DCC_Component:component);
+native DCC_SendChannelMessageComponents(DCC_Channel:channel, const message[], DCC_Component:row1, DCC_Component:row2 = DCC_INVALID_COMPONENT, DCC_Component:row3 = DCC_INVALID_COMPONENT, DCC_Component:row4 = DCC_INVALID_COMPONENT, DCC_Component:row5 = DCC_INVALID_COMPONENT, const callback[] = "", const format[] = "", {Float, _}:...);
+native DCC_SendChannelEmbedMessageComponents(DCC_Channel:channel, DCC_Embed:embed, const message[] = "", DCC_Component:row1, DCC_Component:row2 = DCC_INVALID_COMPONENT, DCC_Component:row3 = DCC_INVALID_COMPONENT, DCC_Component:row4 = DCC_INVALID_COMPONENT, DCC_Component:row5 = DCC_INVALID_COMPONENT, const callback[] = "", const format[] = "", {Float, _}:...);
+
+native DCC_Modal:DCC_CreateModal(const custom_id[], const title[]);
+native DCC_AddModalTextInput(DCC_Modal:modal, const custom_id[], const label[], DCC_TextInputStyle:style = DCC_TEXT_INPUT_SHORT, const placeholder[] = "", bool:required = true, min_length = 0, max_length = 4000, const value[] = "");
+native DCC_ShowModal(DCC_Interaction:interaction, DCC_Modal:modal);
+native DCC_DeleteModal(DCC_Modal:modal);
 
 // callbacks
 //  channels
@@ -256,3 +320,9 @@ forward DCC_OnGuildMemberRemove(DCC_Guild:guild, DCC_User:user);
 forward DCC_OnGuildRoleCreate(DCC_Guild:guild, DCC_Role:role);
 forward DCC_OnGuildRoleUpdate(DCC_Guild:guild, DCC_Role:role);
 forward DCC_OnGuildRoleDelete(DCC_Guild:guild, DCC_Role:role);
+
+
+// callbacks de componentes modernos
+forward DCC_OnButtonInteraction(DCC_Interaction:interaction, DCC_User:user, const custom_id[]);
+forward DCC_OnSelectInteraction(DCC_Interaction:interaction, DCC_User:user, const custom_id[]);
+forward DCC_OnModalSubmit(DCC_Interaction:interaction, DCC_User:user, const custom_id[]);
