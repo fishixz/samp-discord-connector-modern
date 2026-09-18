@@ -332,6 +332,8 @@ extern "C" const AMX_NATIVE_INFO native_list[] =
 
 	AMX_DEFINE_NATIVE(DCC_CreateModal)
 	AMX_DEFINE_NATIVE(DCC_AddModalTextInput)
+	AMX_DEFINE_NATIVE(DCC_AddModalSelect)
+	AMX_DEFINE_NATIVE(DCC_AddModalTextDisplay)
 	AMX_DEFINE_NATIVE(DCC_ShowModal)
 	AMX_DEFINE_NATIVE(DCC_DeleteModal)
 
