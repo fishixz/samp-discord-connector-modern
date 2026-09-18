@@ -58,7 +58,9 @@ enum DCC_ComponentType
 	DCC_COMPONENT_USER_SELECT = 5,
 	DCC_COMPONENT_ROLE_SELECT = 6,
 	DCC_COMPONENT_MENTIONABLE_SELECT = 7,
-	DCC_COMPONENT_CHANNEL_SELECT = 8
+	DCC_COMPONENT_CHANNEL_SELECT = 8,
+	DCC_COMPONENT_TEXT_DISPLAY = 10,
+	DCC_COMPONENT_LABEL = 18
 };
 
 enum DCC_ButtonStyle
@@ -289,7 +291,9 @@ native DCC_SendChannelMessageComponents(DCC_Channel:channel, const message[], DC
 native DCC_SendChannelEmbedMessageComponents(DCC_Channel:channel, DCC_Embed:embed, const message[], DCC_Component:row1, DCC_Component:row2 = DCC_INVALID_COMPONENT, DCC_Component:row3 = DCC_INVALID_COMPONENT, DCC_Component:row4 = DCC_INVALID_COMPONENT, DCC_Component:row5 = DCC_INVALID_COMPONENT, const callback[] = "", const format[] = "", {Float, _}:...);
 
 native DCC_Modal:DCC_CreateModal(const custom_id[], const title[]);
-native DCC_AddModalTextInput(DCC_Modal:modal, const custom_id[], const label[], DCC_TextInputStyle:style = DCC_TEXT_INPUT_SHORT, const placeholder[] = "", bool:required = true, min_length = 0, max_length = 4000, const value[] = "");
+native DCC_AddModalTextInput(DCC_Modal:modal, const custom_id[], const label[], DCC_TextInputStyle:style = DCC_TEXT_INPUT_SHORT, const placeholder[] = "", bool:required = true, min_length = 0, max_length = 4000, const value[] = "", const description[] = "");
+native DCC_AddModalSelect(DCC_Modal:modal, DCC_Component:select, const label[], const description[] = "", bool:required = true);
+native DCC_AddModalTextDisplay(DCC_Modal:modal, const content[]);
 native DCC_ShowModal(DCC_Interaction:interaction, DCC_Modal:modal);
 native DCC_DeleteModal(DCC_Modal:modal);
 
