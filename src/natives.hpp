@@ -164,10 +164,17 @@ namespace Native
 	AMX_DECLARE_NATIVE(DCC_SendChannelMessageComponents);
 	AMX_DECLARE_NATIVE(DCC_SendChannelEmbedMessageComponents);
 
+	AMX_DECLARE_NATIVE(DCC_CreateFileUpload);
+	AMX_DECLARE_NATIVE(DCC_AddFileUploadType);
+	AMX_DECLARE_NATIVE(DCC_CreateRadioGroup);
+	AMX_DECLARE_NATIVE(DCC_CreateCheckboxGroup);
+	AMX_DECLARE_NATIVE(DCC_CreateCheckbox);
+
 	AMX_DECLARE_NATIVE(DCC_CreateModal);
 	AMX_DECLARE_NATIVE(DCC_AddModalTextInput);
 	AMX_DECLARE_NATIVE(DCC_AddModalSelect);
 	AMX_DECLARE_NATIVE(DCC_AddModalTextDisplay);
+	AMX_DECLARE_NATIVE(DCC_AddModalComponent);
 	AMX_DECLARE_NATIVE(DCC_ShowModal);
 	AMX_DECLARE_NATIVE(DCC_DeleteModal);
 
