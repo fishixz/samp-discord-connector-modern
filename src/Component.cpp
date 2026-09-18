@@ -59,7 +59,8 @@ bool Component::AddSelectOption(std::string const& label, std::string const& val
 		m_Data["options"] = json::array();
 
 	auto& options = m_Data["options"];
-	if (!options.is_array() || options.size() >= 25)
+	size_t max_options = type == DiscordComponentType::STRING_SELECT ? 25 : 10;
+	if (!options.is_array() || options.size() >= max_options)
 		return false;
 
 	json option = {
@@ -377,6 +378,20 @@ bool Modal::AddInputComponent(Component const& component, std::string const& lab
 		type != DiscordComponentType::CHECKBOX_GROUP &&
 		type != DiscordComponentType::CHECKBOX)
 		return false;
+
+	auto const& component_data = component.GetData();
+	if (type == DiscordComponentType::RADIO_GROUP)
+	{
+		auto it = component_data.find("options");
+		if (it == component_data.end() || !it->is_array() || it->size() < 2)
+			return false;
+	}
+	else if (type == DiscordComponentType::CHECKBOX_GROUP)
+	{
+		auto it = component_data.find("options");
+		if (it == component_data.end() || !it->is_array() || it->empty())
+			return false;
+	}
 
 	json label_component = {
 		{ "type", static_cast<int>(DiscordComponentType::LABEL) },
