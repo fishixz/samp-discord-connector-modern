@@ -157,38 +157,45 @@ void CommandInteraction::ParseComponentData(nlohmann::json const& interaction_js
 
 void CommandInteraction::ParseModalComponents(nlohmann::json const& components)
 {
-	if (!components.is_array())
+	if (components.is_array())
+	{
+		for (auto const& component : components)
+			ParseModalComponents(component);
+		return;
+	}
+
+	if (!components.is_object())
 		return;
 
-	for (auto const& component : components)
+	if (components.find("components") != components.end())
+		ParseModalComponents(components.at("components"));
+
+	if (components.find("component") != components.end())
+		ParseModalComponents(components.at("component"));
+
+	std::string custom_id;
+	if (!utils::TryGetJsonValue(components, custom_id, "custom_id"))
+		return;
+
+	std::string value;
+	if (utils::TryGetJsonValue(components, value, "value"))
 	{
-		if (component.find("components") != component.end())
-			ParseModalComponents(component.at("components"));
+		m_ModalValues[custom_id] = value;
+		return;
+	}
 
-		std::string custom_id;
-		if (!utils::TryGetJsonValue(component, custom_id, "custom_id"))
-			continue;
-
-		std::string value;
-		if (utils::TryGetJsonValue(component, value, "value"))
+	if (components.find("values") != components.end() && components.at("values").is_array())
+	{
+		std::string joined;
+		for (auto const& entry : components.at("values"))
 		{
-			m_ModalValues[custom_id] = value;
-			continue;
+			if (!entry.is_string())
+				continue;
+			if (!joined.empty())
+				joined += ",";
+			joined += entry.get<std::string>();
 		}
-
-		if (component.find("values") != component.end() && component.at("values").is_array())
-		{
-			std::string joined;
-			for (auto const& entry : component.at("values"))
-			{
-				if (!entry.is_string())
-					continue;
-				if (!joined.empty())
-					joined += ",";
-				joined += entry.get<std::string>();
-			}
-			m_ModalValues[custom_id] = joined;
-		}
+		m_ModalValues[custom_id] = joined;
 	}
 }
 
