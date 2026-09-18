@@ -17,8 +17,14 @@ Além dos recursos já existentes no connector original, esta versão adiciona u
 - Role Select Menu.
 - Mentionable Select Menu.
 - Channel Select Menu.
-- Modais nativos.
+- Modais nativos seguindo a estrutura atual do Discord com Label.
 - Text Input curto e em parágrafo.
+- Select Menus dentro de modais.
+- Text Display dentro de modais.
+- File Upload dentro de modais.
+- Radio Group.
+- Checkbox Group.
+- Checkbox individual.
 - Respostas efêmeras em interações.
 - Atualização da mensagem original após uma interação.
 - Leitura do `custom_id` de botões, selects e modais.
@@ -165,6 +171,14 @@ DCC_SendChannelEmbedMessageComponents
 
 DCC_CreateModal
 DCC_AddModalTextInput
+DCC_AddModalSelect
+DCC_AddModalTextDisplay
+DCC_CreateFileUpload
+DCC_AddFileUploadType
+DCC_CreateRadioGroup
+DCC_CreateCheckboxGroup
+DCC_CreateCheckbox
+DCC_AddModalComponent
 DCC_ShowModal
 
 DCC_GetInteractionCustomId
