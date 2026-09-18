@@ -149,6 +149,7 @@ namespace Native
 	AMX_DECLARE_NATIVE(DCC_GetInteractionValueCount);
 	AMX_DECLARE_NATIVE(DCC_GetInteractionValue);
 	AMX_DECLARE_NATIVE(DCC_GetInteractionModalValue);
+	AMX_DECLARE_NATIVE(DCC_UpdateInteractionMessage);
 
 	AMX_DECLARE_NATIVE(DCC_CreateActionRow);
 	AMX_DECLARE_NATIVE(DCC_CreateButton);
