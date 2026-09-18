@@ -201,48 +201,104 @@ void CommandManager::Initialize()
 
 	Network::Get()->WebSocket().RegisterEvent(WebSocket::Event::INTERACTION_CREATE, [this](const json& data)
 	{
-		if (data.find("type") != data.end() && data.at("type").get<int>() == 2 /*application command*/)
+		int interaction_type = data.value("type", 0);
+		if (interaction_type != 2 && interaction_type != 3 && interaction_type != 5)
+			return;
+
+		UserId_t userid = INVALID_USER_ID;
+		std::string guild_id;
+		bool has_guild = utils::TryGetJsonValue(data, guild_id, "guild_id");
+
+		if (has_guild)
 		{
-			json my_awesome_json;
+			if (data.find("member") != data.end() &&
+				data.at("member").find("user") != data.at("member").end())
+			{
+				userid = UserManager::Get()->AddUser(data.at("member").at("user"));
+			}
+		}
+		else if (data.find("user") != data.end())
+		{
+			userid = UserManager::Get()->AddUser(data.at("user"));
+		}
+
+		if (userid == INVALID_USER_ID)
+		{
+			Logger::Get()->Log(samplog_LogLevel::WARNING,
+				"received interaction without a valid user");
+			return;
+		}
+
+		if (interaction_type == 2)
+		{
+			json deferred = { { "type", 5 } }; // DeferredChannelMessageWithSource
 			std::string json_str;
-
-
-			my_awesome_json["type"] = 5; // DeferredChannelMessageWithSource
-			if (!utils::TryDumpJson(my_awesome_json, json_str))
+			if (!utils::TryDumpJson(deferred, json_str))
 			{
 				Logger::Get()->Log(samplog_LogLevel::ERROR, "can't serialize JSON: {}", json_str);
 				return;
 			}
 
-			Network::Get()->Http().Post(fmt::format("/interactions/{:s}/{:s}/callback", data.at("id").get<std::string>(), data.at("token").get<std::string>()), json_str);
-
-			UserId_t userid = 0;
-
-			std::string meh;
-			bool has_guild = utils::TryGetJsonValue(data, meh, "guild_id");
-			if (has_guild) {
-				userid = UserManager::Get()->AddUser(data["member"]["user"]);
-			}
-			else {
-				userid = UserManager::Get()->AddUser(data["user"]);
-			}
-			
-			auto interactionid = CommandInteractionManager::Get()->AddCommandInteraction(userid, data);
-			PawnDispatcher::Get()->Dispatch([userid, interactionid, data]() mutable
-			{
-				auto & interaction = CommandInteractionManager::Get()->FindCommandInteraction(interactionid);
-				auto & command = CommandManager::Get()->FindCommand(CommandManager::Get()->FindCommandIdByName(data.at("data").at("name").get<std::string>(), interaction->GetGuildID()));
-				if (interaction && command && userid)
-				{
-					// forward CallbackName(DCC_Interaction:interaction, DCC_User:user);	
-					CommandInteractionManager::Get()->m_CurrentInteractionID = interaction->GetPawnId();
-					pawn_cb::Error error;
-					pawn_cb::Callback::CallFirst(error, command->GetCallback().c_str(), interaction->GetPawnId(), userid);	
-					CommandInteractionManager::Get()->m_CurrentInteractionID = INVALID_COMMAND_INTERACTION_ID;
-				}
-				CommandInteractionManager::Get()->DeleteCommandInteraction(interaction->GetPawnId());
-			});
+			Network::Get()->Http().Post(
+				fmt::format("/interactions/{:s}/{:s}/callback",
+					data.at("id").get<std::string>(), data.at("token").get<std::string>()),
+				json_str);
 		}
+
+		auto interactionid = CommandInteractionManager::Get()->AddCommandInteraction(userid, data);
+		if (interactionid == INVALID_COMMAND_INTERACTION_ID)
+			return;
+
+		PawnDispatcher::Get()->Dispatch([userid, interactionid, data, interaction_type]() mutable
+		{
+			auto const& interaction = CommandInteractionManager::Get()->FindCommandInteraction(interactionid);
+			if (!interaction)
+				return;
+
+			CommandInteractionManager::Get()->m_CurrentInteractionID = interaction->GetPawnId();
+			pawn_cb::Error error;
+
+			if (interaction_type == 2)
+			{
+				std::string command_name;
+				if (utils::TryGetJsonValue(data, command_name, "data", "name"))
+				{
+					auto const& command = CommandManager::Get()->FindCommand(
+						CommandManager::Get()->FindCommandIdByName(command_name, interaction->GetGuildID()));
+					if (command)
+						pawn_cb::Callback::CallFirst(error, command->GetCallback().c_str(), interaction->GetPawnId(), userid);
+				}
+			}
+			else if (interaction_type == 3)
+			{
+				int component_type = interaction->GetComponentType();
+				if (component_type == 2)
+				{
+					pawn_cb::Callback::CallFirst(error, "DCC_OnButtonInteraction",
+						interaction->GetPawnId(), userid, interaction->GetCustomId().c_str());
+				}
+				else if (component_type == 3 || component_type == 5 || component_type == 6 ||
+					component_type == 7 || component_type == 8)
+				{
+					pawn_cb::Callback::CallFirst(error, "DCC_OnSelectInteraction",
+						interaction->GetPawnId(), userid, interaction->GetCustomId().c_str());
+				}
+
+				if (!interaction->HasResponded())
+					interaction->Acknowledge();
+			}
+			else if (interaction_type == 5)
+			{
+				pawn_cb::Callback::CallFirst(error, "DCC_OnModalSubmit",
+					interaction->GetPawnId(), userid, interaction->GetCustomId().c_str());
+
+				if (!interaction->HasResponded())
+					interaction->Acknowledge();
+			}
+
+			CommandInteractionManager::Get()->m_CurrentInteractionID = INVALID_COMMAND_INTERACTION_ID;
+			CommandInteractionManager::Get()->DeleteCommandInteraction(interactionid);
+		});
 	});
 }
 
