@@ -6,6 +6,9 @@ on:
       - main
     paths:
       - ".github/workflows/release-linux-v0.4.0.yml"
+      - "src/**"
+      - "discord-connector.inc.in"
+      - "CMakeLists.txt"
   workflow_dispatch:
 
 permissions:
@@ -75,7 +78,7 @@ jobs:
         shell: bash
         run: |
           FILE="discord-connector-modern-v0.4.0-linux-i386.zip"
-          NOTES="Versão Linux i386 pública do samp-discord-connector-modern v0.4.0. Desenvolvida inicialmente para o Rocha Roleplay e disponibilizada para a comunidade SA-MP/open.mp. O ZIP contém o plugin discord-connector.so e o include discord-connector.inc."
+          NOTES="Versão Linux i386 pública do samp-discord-connector-modern v0.4.0, modernizada por Fishixz e disponibilizada para a comunidade SA-MP/open.mp. O ZIP contém o plugin discord-connector.so e o include discord-connector.inc."
           if gh release view v0.4.0 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload v0.4.0 "$FILE" --repo "$GITHUB_REPOSITORY" --clobber
           else
