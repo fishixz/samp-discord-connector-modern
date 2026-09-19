@@ -70,6 +70,16 @@ std::string GetEnvironmentVar(const char *key)
 	return value != nullptr ? std::string(value) : std::string();
 }
 
+void PrintModernCreditBanner()
+{
+	logprintf("===============================================");
+	logprintf("  SAMP Discord Connector Modern " PLUGIN_VERSION);
+	logprintf("  Modernizado por Fishixz");
+	logprintf("  Créditos originais preservados");
+	logprintf("  github.com/fishixz/samp-discord-connector-modern");
+	logprintf("===============================================");
+}
+
 PLUGIN_EXPORT unsigned int PLUGIN_CALL Supports()
 {
 	return SUPPORTS_VERSION | SUPPORTS_AMX_NATIVES | SUPPORTS_PROCESS_TICK;
@@ -79,6 +89,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL Load(void **ppData)
 {
 	pAMXFunctions = ppData[PLUGIN_DATA_AMX_EXPORTS];
 	logprintf = (logprintf_t)ppData[PLUGIN_DATA_LOGPRINTF];
+	PrintModernCreditBanner();
 
 	bool ret_val = true;
 	int intents = ALL_INTENTS;
@@ -396,6 +407,7 @@ class DiscordComponent : public IComponent, public PawnEventHandler, public Core
 	{
 		core = c;
 		logprintf = DiscordComponent::logprintfwrapped;
+		PrintModernCreditBanner();
 
 		bool ret_val = true;
 		int intents = ALL_INTENTS;
